@@ -25,12 +25,20 @@ import smooth
 from colors import Palette
 from manager import LinkManager
 
+try:
+    import pyx
+    have_pyx = True
+except ImportError as e:
+    have_pyx = False
+
+
 class LinkViewer(LinkManager):
     """
     Simply draws a smooth link diagram on a canvas.  Instantiate with
     a canvas and a pickled link diagram as returned by
     OrthogonalLinkDiagram.plink_data.
     """
+
     def __init__(self, canvas, data):
         self.initialize()
         self.canvas = canvas
@@ -43,17 +51,17 @@ class LinkViewer(LinkManager):
         W, H = self.canvas.winfo_width(), self.canvas.winfo_height()
         # To avoid round-off artifacts, compute a floating point bbox
         x0, y0, x1, y1 = self._bbox()
-        w, h = x1-x0, y1-y0
-        factor = min( (W-40)/w, (H-40)/h )
+        w, h = x1 - x0, y1 - y0
+        factor = min((W - 40) / w, (H - 40) / h)
         # Make sure we get an integer bbox after zooming
-        xfactor, yfactor = round(factor*w)/w, round(factor*h)/h
+        xfactor, yfactor = round(factor * w) / w, round(factor * h) / h
         self.update_crosspoints()
         # Scale the picture, fixing the upper left corner
         for vertex in self.Vertices:
-            vertex.x = x0 + xfactor*(vertex.x - x0)
-            vertex.y = y0 + yfactor*(vertex.y - y0)
+            vertex.x = x0 + xfactor * (vertex.x - x0)
+            vertex.y = y0 + yfactor * (vertex.y - y0)
         # Shift into place
-        self._shift( 20 - x0, 20 - y0)
+        self._shift(20 - x0, 20 - y0)
         self.update_info()
 
     def _bbox(self):
@@ -76,7 +84,7 @@ class LinkViewer(LinkManager):
         # Hide the polygon image
         for vertex in self.Vertices:
             vertex.hide()
-        for arrow in self.Arrows: 
+        for arrow in self.Arrows:
             arrow.hide()
         # draw the smooth image
         self.smoother.clear()
@@ -89,8 +97,8 @@ class LinkViewer(LinkManager):
     def save_image(self, file_type='eps', colormode='color', target=None):
         savefile = asksaveasfile(
             mode='w',
-            title='Save As %s (%s)'% (file_type.upper(), colormode),
-            defaultextension = "." + file_type)
+            title='Save As %s (%s)' % (file_type.upper(), colormode),
+            defaultextension="." + file_type)
         if savefile:
             file_name = savefile.name
             savefile.close()
@@ -112,7 +120,7 @@ class LinkViewer(LinkManager):
                      pyx.style.linejoin.round, pyx.color.rgbfromhexstring(color)]
             for lines in polylines:
                 lines = [PDF.transform(xy) for xy in lines]
-                path_parts = [pyx.path.moveto(* lines[0])] + [pyx.path.lineto(*xy) for xy in lines]
+                path_parts = [pyx.path.moveto(*lines[0])] + [pyx.path.lineto(*xy) for xy in lines]
                 PDF.canvas.stroke(pyx.path.path(*path_parts), style)
         PDF.save(file_name)
 
@@ -120,22 +128,21 @@ class LinkViewer(LinkManager):
         menu = self.save_image_menu = Tk_.Menu(menubar, tearoff=0)
         save = self.save_image
         for item_name, save_function in [
-                ('PostScript (color)', lambda : save('eps', 'color')), 
-                ('PostScript (grays)', lambda : save('eps', 'gray')),
-                ('SVG', lambda : save('svg', 'color')),
-                ('TikZ', lambda : save('tikz', 'color')),
-                ('PDF', lambda : save('pdf', 'color'))]:
+            ('PostScript (color)', lambda: save('eps', 'color')),
+            ('PostScript (grays)', lambda: save('eps', 'gray')),
+            ('SVG', lambda: save('svg', 'color')),
+            ('TikZ', lambda: save('tikz', 'color')),
+            ('PDF', lambda: save('pdf', 'color'))]:
             menu.add_command(label=item_name, command=save_function)
         self.disable_fancy_save_images()
         self.enable_fancy_save_images()
         parent_menu.add_cascade(label='Save Image...', menu=menu)
 
     def disable_fancy_save_images(self):
-        for i in [3,4]:
+        for i in [3, 4]:
             self.save_image_menu.entryconfig(i, state='disabled')
 
     def enable_fancy_save_images(self):
-        fancy = [3,4] if have_pyx else [3]
+        fancy = [3, 4] if have_pyx else [3]
         for i in fancy:
             self.save_image_menu.entryconfig(i, state='active')
-

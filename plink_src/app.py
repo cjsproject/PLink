@@ -20,6 +20,9 @@ based on the LinkEditor.
 from . import LinkEditor
 import sys
 
+print("imported app.py")
+
+
 def main():
     if len(sys.argv) > 1:
         for file_name in sys.argv[1:]:
@@ -27,6 +30,7 @@ def main():
     else:
         LE = LinkEditor()
     LE.window.mainloop()
+
 
 if __name__ == "__main__":
     main()

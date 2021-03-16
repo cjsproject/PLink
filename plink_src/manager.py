@@ -27,6 +27,7 @@ from vertex import Vertex
 from arrow import Arrow, default_arrow_params
 from crossings import Crossing, ECrossing
 from smooth import TikZPicture
+
 DT_alphabet = '_abcdefghijklmnopqrstuvwxyzZYXWVUTSRQPONMLKJIHGFEDCBA'
 
 
@@ -34,6 +35,7 @@ class LinkManager:
     """
     Manages the data associated with a link projection.
     """
+
     def __init__(self):
         self.initialize()
 
@@ -48,7 +50,7 @@ class LinkManager:
         self.DTlabels = []
         self.labels = []
         self.shift_stamp = time.time()
-        self.shift_delta = (0,0)
+        self.shift_delta = (0, 0)
         self.shifting = False
         self.canvas = canvas
         self.arrow_params = default_arrow_params.copy()
@@ -67,35 +69,35 @@ class LinkManager:
                 vertices, arrows, crossings = [], [], []
                 num_components = int(lines.pop(0))
                 for n in range(num_components):
-                    lines.pop(0) # We don't need this
+                    lines.pop(0)  # We don't need this
                 num_vertices = int(lines.pop(0))
                 for n in range(num_vertices):
                     x, y = lines.pop(0).split()
-                    vertices.append( (x,y) )
+                    vertices.append((x, y))
                 num_arrows = int(lines.pop(0))
                 for n in range(num_arrows):
                     s, e = lines.pop(0).split()
-                    arrows.append( (s,e) )
+                    arrows.append((s, e))
                 num_crossings = int(lines.pop(0))
                 for n in range(num_crossings):
                     if has_virtual_crossings:
                         v, u, o = lines.pop(0).split()
                         v, u, o = v == 'v', int(u), int(o)
-                        crossings.append((u ,o, v, None))
+                        crossings.append((u, o, v, None))
                     else:
                         u, o = lines.pop(0).split()
                         u, o = int(u), int(o)
-                        crossings.append((u,o, False, None))
+                        crossings.append((u, o, False, None))
                 h = int(lines[0])
                 hot = h if h != -1 else None
-            except:
+                self.unpickle(vertices, arrows, crossings)
+                self.update_crosspoints()
+                return hot
+            except ValueError as e:
                 tkMessageBox.showwarning(
                     'Bad file',
                     'Failed while parsing line %d' % (num_lines - len(lines)))
             # make sure the window has been rendered before doing anything
-            self.unpickle(vertices, arrows, crossings)
-            self.update_crosspoints()
-            return hot
 
     def update_crosspoints(self):
         for arrow in self.Arrows:
@@ -103,7 +105,7 @@ class LinkManager:
             arrow.params = self.arrow_params
         for c in self.Crossings:
             c.locate()
-        self.Crossings = [ c for c in self.Crossings if c.x is not None]
+        self.Crossings = [c for c in self.Crossings if c.x is not None]
         self.CrossPoints = [Vertex(c.x, c.y, self.canvas, style='hidden')
                             for c in self.Crossings]
 
@@ -116,7 +118,7 @@ class LinkManager:
         components the second has the non-closed components.
         """
         pool = [v.out_arrow for v in self.Vertices if v.in_arrow is None]
-        pool += [v.out_arrow  for v in self.Vertices if v.in_arrow is not None]
+        pool += [v.out_arrow for v in self.Vertices if v.in_arrow is not None]
         closed, nonclosed = [], []
         while pool:
             first_arrow = pool.pop(0)
@@ -137,12 +139,15 @@ class LinkManager:
             for vertex in [v for v in self.Vertices if v.is_isolated()]:
                 nonclosed.append([Arrow(vertex, vertex, self.canvas,
                                         color=vertex.color)])
+
         def oldest_vertex(component):
             def oldest(arrow):
                 return min([self.Vertices.index(v)
                             for v in [arrow.start, arrow.end] if v])
-            return min( [len(self.Vertices)] +  [oldest(a) for a in component])
-        closed.sort(key=lambda x : (x[0].component, oldest_vertex(x)))
+
+            return min([len(self.Vertices)] + [oldest(a) for a in component])
+
+        closed.sort(key=lambda x: (x[0].component, oldest_vertex(x)))
         nonclosed.sort(key=oldest_vertex)
         return (closed, nonclosed) if distinguish_closed else closed + nonclosed
 
@@ -165,8 +170,8 @@ class LinkManager:
             arrows_segments = arrow.find_segments(
                 self.Crossings,
                 include_overcrossings=True)
-            segments[arrow] = [ [(x0, y0), (x1, y1)]
-                                for x0, y0, x1, y1 in arrows_segments]
+            segments[arrow] = [[(x0, y0), (x1, y1)]
+                               for x0, y0, x1, y1 in arrows_segments]
 
         if break_at_overcrossings:
             crossing_locations = set([(c.x, c.y) for c in self.Crossings])
@@ -181,9 +186,9 @@ class LinkManager:
                         polyline = segment
                     elif segment[0] == polyline[-1]:
                         if (break_at_overcrossings and
-                            segment[0] in crossing_locations):
-                                polylines.append(polyline)
-                                polyline = segment
+                                segment[0] in crossing_locations):
+                            polylines.append(polyline)
+                            polyline = segment
                         else:
                             polyline.append(segment[1])
                     else:
@@ -208,15 +213,14 @@ class LinkManager:
         result = []
         arrow_components = self.arrow_components()
         for component in arrow_components:
-            crosses=[]
+            crosses = []
             for arrow in component:
                 arrow_crosses = [(c.height(arrow), c, arrow)
-                                for c in self.Crossings if arrow in c]
+                                 for c in self.Crossings if arrow in c]
                 arrow_crosses.sort()
                 crosses += arrow_crosses
-            result.append([ECrossing(c[1],c[2]) for c in crosses])
+            result.append([ECrossing(c[1], c[2]) for c in crosses])
         return result
-
 
     def sorted_components(self):
         """
@@ -251,11 +255,11 @@ class LinkManager:
             # rule: If any crossings on this component have been hit,
             # find the first one with an odd label and then start at
             # its predecessor.
-            odd_hits = [ec for ec in this_component if ec.crossing.hit1%2 == 1]
+            odd_hits = [ec for ec in this_component if ec.crossing.hit1 % 2 == 1]
             if len(odd_hits) > 0:
-                odd_hits.sort(key=lambda x : x.crossing.hit1)
+                odd_hits.sort(key=lambda x: x.crossing.hit1)
                 n = this_component.index(odd_hits[0])
-                this_component = this_component[n-1:] + this_component[:n-1]
+                this_component = this_component[n - 1:] + this_component[:n - 1]
             # Count the crossings on this component and remember any
             # odd-numbered crossings which are shared with an
             # unfinished component.
@@ -273,7 +277,7 @@ class LinkManager:
             # odd-numbered crossing that is shared with another
             # component (if there are any shared crossings).
             if touching:
-                touching.sort(key=lambda x : x[0].hit1)
+                touching.sort(key=lambda x: x[0].hit1)
                 next_component = touching[0][1]
                 components.remove(next_component)
                 components.append(next_component)
@@ -322,19 +326,19 @@ class LinkManager:
             N = len(component)
             for n in range(N):
                 this = component[n]
-                previous = component[n-1]
-                next = component[(n+1)%N]
+                previous = component[n - 1]
+                next = component[(n + 1) % N]
                 this.crossing.KLP['sign'] = sign = this.crossing.sign()
                 if this.strand == 'X':
                     this.crossing.KLP['Xbackward_neighbor'] = id(previous)
                     this.crossing.KLP['Xbackward_strand'] = previous.strand
-                    this.crossing.KLP['Xforward_neighbor']  = id(next)
+                    this.crossing.KLP['Xforward_neighbor'] = id(next)
                     this.crossing.KLP['Xforward_strand'] = next.strand
                     this.crossing.KLP['Xcomponent'] = this_component
                 else:
                     this.crossing.KLP['Ybackward_neighbor'] = id(previous)
                     this.crossing.KLP['Ybackward_strand'] = previous.strand
-                    this.crossing.KLP['Yforward_neighbor']  = id(next)
+                    this.crossing.KLP['Yforward_neighbor'] = id(next)
                     this.crossing.KLP['Yforward_strand'] = next.strand
                     this.crossing.KLP['Ycomponent'] = this_component
             if N == 0:
@@ -353,23 +357,23 @@ class LinkManager:
             components = self.crossing_components()
         except ValueError:
             return None
-        ecrossings = [ ec for component in components
-                       for ec in component ]
-        counter = dict( (ec, k+1) for k, ec in enumerate(ecrossings) )
+        ecrossings = [ec for component in components
+                      for ec in component]
+        counter = dict((ec, k + 1) for k, ec in enumerate(ecrossings))
         over_dict, under_dict = {}, {}
         for component in components:
             for n, ec in enumerate(component):
-                incoming = counter[component[n-1]]
+                incoming = counter[component[n - 1]]
                 outgoing = counter[component[n]]
                 D = over_dict if ec.goes_over() else under_dict
                 D[ec.crossing] = (incoming, outgoing)
         PD = []
         for crossing in self.Crossings:
             under, over = under_dict[crossing], over_dict[crossing]
-            if crossing.sign() =='RH':
-                PD.append( (under[0], over[1], under[1], over[0]) )
+            if crossing.sign() == 'RH':
+                PD.append((under[0], over[1], under[1], over[0]))
             else:
-                PD.append( (under[0], over[0], under[1], over[1]) )
+                PD.append((under[0], over[0], under[1], over[1]))
         return PD
 
     def DT_code(self, alpha=False, signed=True, return_sizes=False):
@@ -390,21 +394,21 @@ class LinkManager:
         component_sizes = [len(c) for c in sorted_components]
         DT_chunks, S = [], 0
         for size in component_sizes:
-            DT_chunks.append((size+1)//2 if S%2 != 0 else size//2)
+            DT_chunks.append((size + 1) // 2 if S % 2 != 0 else size // 2)
             S += size
         # Now build the Dowker-Thistlethwaite code
-        even_codes = [None]*len(self.Crossings)
-        flips = [None]*len(self.Crossings)
+        even_codes = [None] * len(self.Crossings)
+        flips = [None] * len(self.Crossings)
         for crossing in self.Crossings:
-            if crossing.hit1%2 != 0:
-                n = (crossing.hit1 - 1)//2
+            if crossing.hit1 % 2 != 0:
+                n = (crossing.hit1 - 1) // 2
                 even_codes[n] = crossing.hit2
             else:
-                if crossing.hit2 == -2*len(self.Crossings):
+                if crossing.hit2 == -2 * len(self.Crossings):
                     # This can actually happen!
                     n = -1
                 else:
-                    n = (crossing.hit2 - 1)//2
+                    n = (crossing.hit2 - 1) // 2
                 even_codes[n] = crossing.hit1
             flips[n] = int(crossing.flipped)
         if not alpha:
@@ -423,11 +427,11 @@ class LinkManager:
                     'Error',
                     'Alphabetical DT codes require fewer than 26 crossings.')
                 return None
-            alphacode = ''.join(tuple([DT_alphabet[n>>1] for n in even_codes]))
+            alphacode = ''.join(tuple([DT_alphabet[n >> 1] for n in even_codes]))
             prefix = ''.join(tuple([DT_alphabet[n] for n in prefix_ints]))
             if signed:
                 alphacode += '.' + ''.join([str(f) for f in flips])
-            result=[prefix + alphacode]
+            result = [prefix + alphacode]
         if return_sizes:
             result.append(component_sizes)
         return tuple(result)
@@ -443,17 +447,17 @@ class LinkManager:
         if dt is None:
             return None
         evens = [y for x in dt for y in x]
-        size = 2*len(evens)
-        counts = [None]*size
+        size = 2 * len(evens)
+        counts = [None] * size
         for odd, N in zip(range(1, size, 2), evens):
             even = abs(N)
             if even < odd:
-                counts[even-1] = -N
-                counts[odd-1] = N
+                counts[even - 1] = -N
+                counts[odd - 1] = N
             else:
                 O = odd if N > 0 else -odd
-                counts[even-1] = -O
-                counts[odd-1] = O
+                counts[even - 1] = -O
+                counts[odd - 1] = O
         gauss = []
         start = 0
         for size in sizes:
@@ -484,7 +488,7 @@ class LinkManager:
                     elif ec.crossing.sign() == 'LH':
                         m -= 1
             # Each crossing got counted twice.
-            framing.append( (m // 2, 1) )
+            framing.append((m // 2, 1))
         return framing
 
     def write_text(self, text):
@@ -498,7 +502,7 @@ class LinkManager:
         """
         code = self.DT_code()
         if code:
-            self.write_text(('DT: %s,  %s'%code).replace(', ',','))
+            self.write_text(('DT: %s,  %s' % code).replace(', ', ','))
 
     def DT_alpha(self):
         """
@@ -507,7 +511,7 @@ class LinkManager:
         """
         code = self.DT_code(alpha=True)
         if code:
-            self.write_text('DT: %s'%code)
+            self.write_text('DT: %s' % code)
 
     def Gauss_info(self):
         """
@@ -516,7 +520,7 @@ class LinkManager:
         """
         code = self.Gauss_code()
         if code:
-            self.write_text(('Gauss: %s'%code).replace(', ',','))
+            self.write_text(('Gauss: %s' % code).replace(', ', ','))
 
     def PD_info(self):
         """
@@ -524,7 +528,7 @@ class LinkManager:
         """
         code = self.PD_code()
         if code:
-            self.write_text(('PD: %s'%code).replace(', ',','))
+            self.write_text(('PD: %s' % code).replace(', ', ','))
 
     def BB_info(self):
         """
@@ -533,7 +537,7 @@ class LinkManager:
         """
         framing = self.BB_framing()
         if framing:
-            self.write_text(('BB framing:  %s'%framing).replace(', ',','))
+            self.write_text(('BB framing:  %s' % framing).replace(', ', ','))
 
     def SnapPea_projection_file(self):
         """
@@ -545,27 +549,28 @@ class LinkManager:
         result = ''
         result += '% Virtual Link Projection\n' if has_virtual_crossings else '% Link Projection\n'
         components = self.arrow_components()
-        result += '%d\n'%len(components)
+        result += '%d\n' % len(components)
         for component in components:
             first = self.Vertices.index(component[0].start)
             last = self.Vertices.index(component[-1].end)
-            result +='%4.1d %4.1d\n'%(first, last)
-        result += '%d\n'%len(self.Vertices)
+            result += '%4.1d %4.1d\n' % (first, last)
+        result += '%d\n' % len(self.Vertices)
         for vertex in self.Vertices:
-            result += '%5.1d %5.1d\n'%vertex.point()
-        result += '%d\n'%len(self.Arrows)
+            result += '%5.1d %5.1d\n' % vertex.point()
+        result += '%d\n' % len(self.Arrows)
         for arrow in self.Arrows:
             start_index = self.Vertices.index(arrow.start)
             end_index = self.Vertices.index(arrow.end)
-            result += '%4.1d %4.1d\n'%(start_index, end_index)
-        result += '%d\n'%len(self.Crossings)
+            result += '%4.1d %4.1d\n' % (start_index, end_index)
+        result += '%d\n' % len(self.Crossings)
         for crossing in self.Crossings:
             under = self.Arrows.index(crossing.under)
             over = self.Arrows.index(crossing.over)
             is_virtual = 'v' if crossing.is_virtual else 'r'
-            result += '%4s %4.1d %4.1d\n'%(is_virtual, under, over) if has_virtual_crossings else '%4.1d %4.1d\n'%(under, over)
+            result += '%4s %4.1d %4.1d\n' % (is_virtual, under, over) if has_virtual_crossings else '%4.1d %4.1d\n' % (
+                under, over)
         if self.ActiveVertex:
-            result += '%d\n'%self.Vertices.index(self.ActiveVertex)
+            result += '%d\n' % self.Vertices.index(self.ActiveVertex)
         else:
             result += '-1\n'
         return result
@@ -600,8 +605,8 @@ class LinkManager:
             return sequence
 
         curves = list(ascii_lowercase) + ['%s%d' % (letter, index)
-            for index in range((len(closed_components) + len(nonclosed_components)) // 26)
-            for letter in ascii_lowercase]
+                                          for index in range((len(closed_components) + len(nonclosed_components)) // 26)
+                                          for letter in ascii_lowercase]
         i = 0
         for component in closed_components:
             result += 'annulus,%s,%s,%s#\n' % (

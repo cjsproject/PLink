@@ -17,19 +17,22 @@
 This module exports the class LinkEditor which is a full-featured
 editing tool for link diagrams.
 """
-import os, time, webbrowser
+import os
+import time
+import webbrowser
+from urllib.request import pathname2url
 
-from gui import *
 import smooth
-from vertex import Vertex
 from arrow import Arrow
-from crossings import Crossing, ECrossing
 from colors import Palette
+from crossings import Crossing
 from dialog import InfoDialog
-from manager import LinkManager
-from viewer import LinkViewer
-from version import version
+from gui import *
 from ipython_tools import IPythonTkRoot
+from manager import LinkManager
+from version import version
+from vertex import Vertex
+from viewer import LinkViewer
 
 About = """This is version %s of PLink.
 
@@ -50,14 +53,16 @@ PLink was inspired by SnapPea (written by Jeff Weeks) and
 LinkSmith (written by Jim Hoste and Morwen Thistlethwaite).
 """ % version
 
+
 class PLinkBase(LinkViewer):
     """
     Base class for windows displaying a LinkViewer and an Info Window.
     """
+
     def __init__(self, root=None, manifold=None, file_name=None, title='',
                  show_crossing_labels=False):
         self.initialize()
-        self.show_crossing_labels=show_crossing_labels
+        self.show_crossing_labels = show_crossing_labels
         self.manifold = manifold
         self.title = title
         self.cursorx = 0
@@ -73,8 +78,8 @@ class PLinkBase(LinkViewer):
         self.window.protocol("WM_DELETE_WINDOW", self.done)
         if sys.platform == 'linux2' or sys.platform == 'linux':
             root.tk.call('namespace', 'import', '::tk::dialog::file::')
-            root.tk.call('set', '::tk::dialog::file::showHiddenBtn',  '1')
-            root.tk.call('set', '::tk::dialog::file::showHiddenVar',  '0')
+            root.tk.call('set', '::tk::dialog::file::showHiddenBtn', '1')
+            root.tk.call('set', '::tk::dialog::file::showHiddenVar', '0')
         self.window.title(title)
         self.style = PLinkStyle()
         self.palette = Palette()
@@ -110,7 +115,7 @@ class PLinkBase(LinkViewer):
         self.focus_after = None
         # Info window
         self.infotext.bind('<Control-Shift-C>',
-                           lambda event : self.infotext.event_generate('<<Copy>>'))
+                           lambda event: self.infotext.event_generate('<<Copy>>'))
         self.infotext.bind('<<Copy>>', self.copy_info)
         # Menus
         self._build_menus()
@@ -179,10 +184,10 @@ class PLinkBase(LinkViewer):
                                   command=self.set_info, value=5)
         info_menu.add_separator()
         info_menu.add_checkbutton(label='DT labels', var=self.show_DT_var,
-                                  command = self.update_info)
+                                  command=self.update_info)
         if self.show_crossing_labels:
             info_menu.add_checkbutton(label='Crossing labels', var=self.show_labels_var,
-                                      command = self.update_info)
+                                      command=self.update_info)
         self.menubar.add_cascade(label='Info', menu=info_menu)
 
     # Override if you want a tools menu
@@ -192,11 +197,11 @@ class PLinkBase(LinkViewer):
     def _add_style_menu(self):
         style_menu = Tk_.Menu(self.menubar, tearoff=0)
         style_menu.add_radiobutton(label='PL', value='pl',
-                              command=self.set_style,
-                              variable=self.style_var)
-        style_menu.add_radiobutton(label='Smooth',  value='smooth',
-                              command=self.set_style,
-                              variable=self.style_var)
+                                   command=self.set_style,
+                                   variable=self.style_var)
+        style_menu.add_radiobutton(label='Smooth', value='smooth',
+                                   command=self.set_style,
+                                   variable=self.style_var)
         self._extend_style_menu(style_menu)
         self.menubar.add_cascade(label='Style', menu=style_menu)
         self._add_zoom_and_pan(style_menu)
@@ -216,14 +221,14 @@ class PLinkBase(LinkViewer):
                                   command=self.zoom_out)
             zoom_menu.add_command(label='Zoom to fit\t0',
                                   command=self.zoom_to_fit)
-            pan_menu.add_command(label='Left  \t'+scut['Left'],
-                                 command=lambda : self._shift(-5,0))
-            pan_menu.add_command(label='Up    \t'+scut['Up'],
-                                 command=lambda : self._shift(0,-5))
-            pan_menu.add_command(label='Right \t'+scut['Right'],
-                                 command=lambda : self._shift(5,0))
-            pan_menu.add_command(label='Down  \t'+scut['Down'],
-                                 command=lambda : self._shift(0,5))
+            pan_menu.add_command(label='Left  \t' + scut['Left'],
+                                 command=lambda: self._shift(-5, 0))
+            pan_menu.add_command(label='Up    \t' + scut['Up'],
+                                 command=lambda: self._shift(0, -5))
+            pan_menu.add_command(label='Right \t' + scut['Right'],
+                                 command=lambda: self._shift(5, 0))
+            pan_menu.add_command(label='Down  \t' + scut['Down'],
+                                 command=lambda: self._shift(0, 5))
         else:
             zoom_menu.add_command(label='Zoom in', accelerator='+',
                                   command=self.zoom_in)
@@ -232,21 +237,23 @@ class PLinkBase(LinkViewer):
             zoom_menu.add_command(label='Zoom to fit', accelerator='0',
                                   command=self.zoom_to_fit)
             pan_menu.add_command(label='Left', accelerator=scut['Left'],
-                                 command=lambda : self._shift(-5,0))
+                                 command=lambda: self._shift(-5, 0))
             pan_menu.add_command(label='Up', accelerator=scut['Up'],
-                                 command=lambda : self._shift(0,-5))
+                                 command=lambda: self._shift(0, -5))
             pan_menu.add_command(label='Right', accelerator=scut['Right'],
-                                 command=lambda : self._shift(5,0))
+                                 command=lambda: self._shift(5, 0))
             pan_menu.add_command(label='Down', accelerator=scut['Down'],
-                                 command=lambda : self._shift(0,5))
+                                 command=lambda: self._shift(0, 5))
         style_menu.add_separator()
         style_menu.add_cascade(label='Zoom', menu=zoom_menu)
         style_menu.add_cascade(label='Pan', menu=pan_menu)
 
     def alert(self):
         background = self.canvas.cget('bg')
+
         def reset_bg():
             self.canvas.config(bg=background)
+
         self.canvas.config(bg='#000000')
         self.canvas.after(100, reset_bg)
 
@@ -311,12 +318,12 @@ class PLinkBase(LinkViewer):
                                             fill=color,
                                             anchor=Tk_.NW,
                                             font='Helvetica 16 bold'))
-            x, n = x+16, n+1
+            x, n = x + 16, n + 1
         for vertex in self.Vertices:
             vertex.draw()
         self.update_smooth()
 
-    def unpickle(self,  vertices, arrows, crossings, hot=None):
+    def unpickle(self, vertices, arrows, crossings, hot=None):
         LinkManager.unpickle(self, vertices, arrows, crossings, hot)
         self.set_style()
         self.full_redraw()
@@ -352,7 +359,7 @@ class PLinkBase(LinkViewer):
         self.canvas.move('transformable', dx, dy)
         for livearrow in (self.LiveArrow1, self.LiveArrow2):
             if livearrow:
-                x0,y0,x1,y1 = self.canvas.coords(livearrow)
+                x0, y0, x1, y1 = self.canvas.coords(livearrow)
                 x0 += dx
                 y0 += dy
                 self.canvas.coords(livearrow, x0, y0, x1, y1)
@@ -363,8 +370,8 @@ class PLinkBase(LinkViewer):
         except TypeError:
             return
         for vertex in self.Vertices:
-            vertex.x = ulx + xfactor*(vertex.x - ulx)
-            vertex.y = uly + yfactor*(vertex.y - uly)
+            vertex.x = ulx + xfactor * (vertex.x - ulx)
+            vertex.y = uly + yfactor * (vertex.y - uly)
         self.update_crosspoints()
         for arrow in self.Arrows:
             arrow.draw(self.Crossings, skip_frozen=False)
@@ -373,9 +380,9 @@ class PLinkBase(LinkViewer):
         self.update_smooth()
         for livearrow in (self.LiveArrow1, self.LiveArrow2):
             if livearrow:
-                x0,y0,x1,y1 = self.canvas.coords(livearrow)
-                x0 = ulx + xfactor*(x0 - ulx)
-                y0 = uly + yfactor*(y0 - uly)
+                x0, y0, x1, y1 = self.canvas.coords(livearrow)
+                x0 = ulx + xfactor * (x0 - ulx)
+                y0 = uly + yfactor * (y0 - uly)
                 self.canvas.coords(livearrow, x0, y0, x1, y1)
         self.update_info()
 
@@ -394,15 +401,15 @@ class PLinkBase(LinkViewer):
         for V in self.Vertices:
             x0, y0 = min(x0, V.x), min(y0, V.y)
             x1, y1 = max(x1, V.x), max(y1, V.y)
-        w, h = x1-x0, y1-y0
-        factor = min( (W-60)/w, (H-60)/h )
+        w, h = x1 - x0, y1 - y0
+        factor = min((W - 60) / w, (H - 60) / h)
         # Make sure we get an integer bbox after zooming
-        xfactor, yfactor = round(factor*w)/w, round(factor*h)/h
+        xfactor, yfactor = round(factor * w) / w, round(factor * h) / h
         self._zoom(xfactor, yfactor)
         # Now center the picture
         try:
             x0, y0, x1, y1 = self.canvas.bbox('transformable')
-            self._shift( (W - x1 + x0)/2 - x0, (H - y1 + y0)/2 - y0 )
+            self._shift((W - x1 + x0) / 2 - x0, (H - y1 + y0) / 2 - y0)
         except TypeError:
             pass
 
@@ -451,14 +458,14 @@ class PLinkBase(LinkViewer):
             yshift = 0
             for arrow in crossing.over, crossing.under:
                 arrow.vectorize()
-                if abs(arrow.dy) < .3*abs(arrow.dx):
+                if abs(arrow.dy) < .3 * abs(arrow.dx):
                     yshift = 8
             flip = ' *' if crossing.flipped else ''
             self.labels.append(self.canvas.create_text(
-                    (crossing.x - 1, crossing.y - yshift),
-                    anchor=Tk_.E,
-                    text=str(crossing.label)
-                    ))
+                (crossing.x - 1, crossing.y - yshift),
+                anchor=Tk_.E,
+                text=str(crossing.label)
+            ))
 
     def show_DT(self):
         """
@@ -471,19 +478,19 @@ class PLinkBase(LinkViewer):
             yshift = 0
             for arrow in crossing.over, crossing.under:
                 arrow.vectorize()
-                if abs(arrow.dy) < .3*abs(arrow.dx):
+                if abs(arrow.dy) < .3 * abs(arrow.dx):
                     yshift = 8
             flip = ' *' if crossing.flipped else ''
             self.DTlabels.append(self.canvas.create_text(
-                    (crossing.x - 10, crossing.y - yshift),
-                    anchor=Tk_.E,
-                    text=str(crossing.hit1)
-                    ))
+                (crossing.x - 10, crossing.y - yshift),
+                anchor=Tk_.E,
+                text=str(crossing.hit1)
+            ))
             self.DTlabels.append(self.canvas.create_text(
-                    (crossing.x + 10, crossing.y - yshift),
-                    anchor=Tk_.W,
-                    text=str(crossing.hit2) + flip
-                    ))
+                (crossing.x + 10, crossing.y - yshift),
+                anchor=Tk_.W,
+                text=str(crossing.hit2) + flip
+            ))
 
     def hide_labels(self):
         for text_item in self.labels:
@@ -525,12 +532,12 @@ class PLinkBase(LinkViewer):
             parent=self.window,
             mode='w',
             title='Save As Snappea Projection File',
-            defaultextension = '.lnk',
-            filetypes = [
+            defaultextension='.lnk',
+            filetypes=[
                 ("Link and text files", "*.lnk *.txt", "TEXT"),
                 ("All text files", "", "TEXT"),
                 ("All files", "")],
-            )
+        )
         if savefile:
             savefile.write(self.SnapPea_projection_file())
             savefile.close()
@@ -550,23 +557,27 @@ class PLinkBase(LinkViewer):
         try:
             webbrowser.open(url)
         except:
-            tkMessageBox.showwarning('Not found!', 'Could not open URL\n(%s)'%url)
+            tkMessageBox.showwarning('Not found!', 'Could not open URL\n(%s)' % url)
+
 
 class LinkDisplay(PLinkBase):
     """
     Displays an immutable link diagram.
     """
+
     def __init__(self, *args, **kwargs):
         if 'title' not in kwargs:
             kwargs['title'] = 'PLink Viewer'
         PLinkBase.__init__(self, *args, **kwargs)
         self.style_var.set('smooth')
 
+
 class LinkEditor(PLinkBase):
     """
     A complete graphical link drawing tool based on the one embedded in Jeff Weeks'
     original SnapPea program.
     """
+
     def __init__(self, *args, **kwargs):
         if 'title' not in kwargs:
             kwargs['title'] = 'PLink Editor'
@@ -576,7 +587,7 @@ class LinkEditor(PLinkBase):
         PLinkBase.__init__(self, *args, **kwargs)
         self.flipcheck = None
         self.shift_down = False
-        self.state='start_state'
+        self.state = 'start_state'
         self.canvas.bind('<Button-1>', self.single_click)
         self.canvas.bind('<Double-Button-1>', self.double_click)
         self.canvas.bind('<Shift-Button-1>', self.shift_click)
@@ -591,10 +602,10 @@ class LinkEditor(PLinkBase):
 
     def _check_update(self):
         if self.state == 'start_state':
-            return  True
+            return True
         elif self.state == 'dragging_state':
-            x, y = self.cursorx, self.canvas.winfo_height()-self.cursory
-            self.write_text( '(%d, %d)'%(x, y) )
+            x, y = self.cursorx, self.canvas.winfo_height() - self.cursory
+            self.write_text('(%d, %d)' % (x, y))
         return False
 
     def _add_file_menu(self):
@@ -611,15 +622,15 @@ class LinkEditor(PLinkBase):
 
     def _extend_style_menu(self, style_menu):
         style_menu.add_radiobutton(label='Smooth edit', value='both',
-                                  command=self.set_style,
-                                  variable=self.style_var)
+                                   command=self.set_style,
+                                   variable=self.style_var)
 
     def _add_tools_menu(self):
         self.lock_var = Tk_.BooleanVar(self.window)
         self.lock_var.set(False)
         self.tools_menu = tools_menu = Tk_.Menu(self.menubar, tearoff=0)
         tools_menu.add_command(label='Make alternating',
-                       command=self.make_alternating)
+                               command=self.make_alternating)
         tools_menu.add_command(label='Reflect', command=self.reflect)
         tools_menu.add_checkbutton(label="Preserve diagram", var=self.lock_var)
         tools_menu.add_command(label='Clear', command=self.clear)
@@ -646,7 +657,7 @@ class LinkEditor(PLinkBase):
         if key in ('Shift_L', 'Shift_R') and self.state == 'start_state':
             self.shift_down = True
             self.set_start_cursor(self.cursorx, self.cursory)
-        if key in ('Delete','BackSpace'):
+        if key in ('Delete', 'BackSpace'):
             if self.state == 'drawing_state':
                 last_arrow = self.ActiveVertex.in_arrow
                 if last_arrow:
@@ -655,7 +666,7 @@ class LinkEditor(PLinkBase):
                         self.destroy_arrow(dead_arrow)
                     self.ActiveVertex = last_arrow.start
                     self.ActiveVertex.out_arrow = None
-                    x0,y0,x1,y1 = self.canvas.coords(self.LiveArrow1)
+                    x0, y0, x1, y1 = self.canvas.coords(self.LiveArrow1)
                     x0, y0 = self.ActiveVertex.point()
                     self.canvas.coords(self.LiveArrow1, x0, y0, x1, y1)
                     self.Crossings = [c for c in self.Crossings
@@ -683,7 +694,7 @@ class LinkEditor(PLinkBase):
                 pass
             return
         else:
-            if key in ('Return','Escape'):
+            if key in ('Return', 'Escape'):
                 self.cursorx = self.ActiveVertex.x
                 self.cursory = self.ActiveVertex.y
                 self.end_dragging_state()
@@ -699,10 +710,10 @@ class LinkEditor(PLinkBase):
             for vertex in self.Vertices:
                 if vertex.is_endpoint():
                     if tkMessageBox.askretrycancel('Warning',
-                         'This link has non-closed components!\n'
-                         'Click "retry" to continue editing.\n'
-                         'Click "cancel" to quit anyway.\n'
-                         '(The link projection may be useless.)'):
+                                                   'This link has non-closed components!\n'
+                                                   'Click "retry" to continue editing.\n'
+                                                   'Click "cancel" to quit anyway.\n'
+                                                   '(The link projection may be useless.)'):
                         return 'oops'
                     else:
                         break
@@ -797,7 +808,7 @@ class LinkEditor(PLinkBase):
         self.clear_text()
         start_vertex = Vertex(x, y, self.canvas, style='hidden')
         if start_vertex in self.CrossPoints:
-            #print 'shift-click in %s'%self.state
+            # print 'shift-click in %s'%self.state
             crossing = self.Crossings[self.CrossPoints.index(start_vertex)]
             self.update_info()
             crossing.is_virtual = not crossing.is_virtual
@@ -822,7 +833,7 @@ class LinkEditor(PLinkBase):
         start_vertex = Vertex(x, y, self.canvas, style='hidden')
         if self.state == 'start_state':
             if start_vertex in self.Vertices:
-                #print 'single click on a vertex'
+                # print 'single click on a vertex'
                 self.state = 'dragging_state'
                 self.hide_DT()
                 self.hide_labels()
@@ -852,7 +863,7 @@ class LinkEditor(PLinkBase):
             elif self.lock_var.get():
                 return
             elif start_vertex in self.CrossPoints:
-                #print 'single click on a crossing'
+                # print 'single click on a crossing'
                 crossing = self.Crossings[self.CrossPoints.index(start_vertex)]
                 if crossing.is_virtual:
                     crossing.is_virtual = False
@@ -864,10 +875,10 @@ class LinkEditor(PLinkBase):
                 self.update_smooth()
                 return
             elif self.clicked_on_arrow(start_vertex):
-                #print 'clicked on an arrow.'
+                # print 'clicked on an arrow.'
                 return
             else:
-                #print 'creating a new vertex'
+                # print 'creating a new vertex'
                 if not self.generic_vertex(start_vertex):
                     start_vertex.erase()
                     self.alert()
@@ -876,19 +887,19 @@ class LinkEditor(PLinkBase):
             start_vertex.set_color(self.palette.new())
             self.Vertices.append(start_vertex)
             self.ActiveVertex = start_vertex
-            self.goto_drawing_state(x1,y1)
+            self.goto_drawing_state(x1, y1)
             return
         elif self.state == 'drawing_state':
             next_vertex = Vertex(x, y, self.canvas, style='hidden')
             if next_vertex == self.ActiveVertex:
-                #print 'clicked the same vertex twice'
+                # print 'clicked the same vertex twice'
                 next_vertex.erase()
                 dead_arrow = self.ActiveVertex.out_arrow
                 if dead_arrow:
                     self.destroy_arrow(dead_arrow)
                 self.goto_start_state()
                 return
-            #print 'setting up a new arrow'
+            # print 'setting up a new arrow'
             if self.ActiveVertex.out_arrow:
                 next_arrow = self.ActiveVertex.out_arrow
                 next_arrow.set_end(next_vertex)
@@ -898,12 +909,12 @@ class LinkEditor(PLinkBase):
             else:
                 this_color = self.ActiveVertex.color
                 next_arrow = Arrow(self.ActiveVertex, next_vertex,
-                                 self.canvas, style='hidden',
-                                 color=this_color)
+                                   self.canvas, style='hidden',
+                                   color=this_color)
                 self.Arrows.append(next_arrow)
             next_vertex.set_color(next_arrow.color)
             if next_vertex in [v for v in self.Vertices if v.is_endpoint()]:
-                #print 'melding vertices'
+                # print 'melding vertices'
                 if not self.generic_arrow(next_arrow):
                     self.alert()
                     return
@@ -915,14 +926,14 @@ class LinkEditor(PLinkBase):
                 next_vertex.in_arrow = next_arrow
                 if next_vertex.color != self.ActiveVertex.color:
                     self.palette.recycle(self.ActiveVertex.color)
-                    next_vertex.recolor_incoming(color = next_vertex.color)
+                    next_vertex.recolor_incoming(color=next_vertex.color)
                 self.update_crossings(next_arrow)
                 next_arrow.expose(self.Crossings)
                 self.goto_start_state()
                 return
-            #print 'just extending a path, as usual'
+            # print 'just extending a path, as usual'
             if not (self.generic_vertex(next_vertex) and
-                    self.generic_arrow(next_arrow) ):
+                    self.generic_arrow(next_arrow)):
                 self.alert()
                 self.destroy_arrow(next_arrow)
                 return
@@ -932,7 +943,7 @@ class LinkEditor(PLinkBase):
             self.Vertices.append(next_vertex)
             next_vertex.expose()
             self.ActiveVertex = next_vertex
-            self.canvas.coords(self.LiveArrow1,x,y,x,y)
+            self.canvas.coords(self.LiveArrow1, x, y, x, y)
             return
         elif self.state == 'dragging_state':
             try:
@@ -952,7 +963,7 @@ class LinkEditor(PLinkBase):
         y = y1 = self.canvas.canvasy(event.y)
         self.clear_text()
         vertex = Vertex(x, y, self.canvas, style='hidden')
-        #print 'double-click in %s'%self.state
+        # print 'double-click in %s'%self.state
         if self.state == 'dragging_state':
             try:
                 self.end_dragging_state()
@@ -961,7 +972,7 @@ class LinkEditor(PLinkBase):
                 return
             # The first click on a vertex put us in dragging state.
             if vertex in [v for v in self.Vertices if v.is_endpoint()]:
-                #print 'double-clicked on an endpoint'
+                # print 'double-clicked on an endpoint'
                 vertex.erase()
                 vertex = self.Vertices[self.Vertices.index(vertex)]
                 x0, y0 = x1, y1 = vertex.point()
@@ -969,7 +980,7 @@ class LinkEditor(PLinkBase):
                     self.update_crosspoints()
                     vertex.reverse_path()
             elif vertex in self.Vertices:
-                #print 'double-clicked on a non-endpoint vertex'
+                # print 'double-clicked on a non-endpoint vertex'
                 cut_vertex = self.Vertices[self.Vertices.index(vertex)]
                 cut_vertex.recolor_incoming(palette=self.palette)
                 cut_arrow = cut_vertex.in_arrow
@@ -978,10 +989,10 @@ class LinkEditor(PLinkBase):
                 x1, y1 = cut_vertex.point()
                 cut_arrow.freeze()
             self.ActiveVertex = vertex
-            self.goto_drawing_state(x1,y1)
+            self.goto_drawing_state(x1, y1)
             return
         elif self.state == 'drawing_state':
-            #print 'double-click while drawing'
+            # print 'double-click while drawing'
             dead_arrow = self.ActiveVertex.out_arrow
             if dead_arrow:
                 self.destroy_arrow(dead_arrow)
@@ -1017,7 +1028,7 @@ class LinkEditor(PLinkBase):
                 self.flipcheck = None
                 self.canvas.config(cursor='')
 
-    def mouse_moved(self,event):
+    def mouse_moved(self, event):
         """
         Handler for mouse motion events.
         """
@@ -1028,9 +1039,9 @@ class LinkEditor(PLinkBase):
         x, y = canvas.canvasx(X), canvas.canvasy(Y)
         self.cursorx, self.cursory = X, Y
         if self.state == 'start_state':
-            self.set_start_cursor(x,y)
+            self.set_start_cursor(x, y)
         elif self.state == 'drawing_state':
-            x0,y0,x1,y1 = self.canvas.coords(self.LiveArrow1)
+            x0, y0, x1, y1 = self.canvas.coords(self.LiveArrow1)
             self.canvas.coords(self.LiveArrow1, x0, y0, x, y)
         elif self.state == 'dragging_state':
             if self.shifting:
@@ -1066,7 +1077,7 @@ class LinkEditor(PLinkBase):
                         self.detach_cursor('non-generic active vertex')
                     self.canvas.delete('lock_error')
                     delta = 6
-                    self.canvas.create_oval(x0-delta , y0-delta, x0+delta, y0+delta,
+                    self.canvas.create_oval(x0 - delta, y0 - delta, x0 + delta, y0 + delta,
                                             outline='gray', fill=None, width=3,
                                             tags='lock_error')
                     return
@@ -1091,27 +1102,27 @@ class LinkEditor(PLinkBase):
             active.x, active.y = float(x), float(y)
         self.ActiveVertex.draw()
         if self.LiveArrow1:
-            x0,y0,x1,y1 = self.canvas.coords(self.LiveArrow1)
+            x0, y0, x1, y1 = self.canvas.coords(self.LiveArrow1)
             self.canvas.coords(self.LiveArrow1, x0, y0, x, y)
         if self.LiveArrow2:
-            x0,y0,x1,y1 = self.canvas.coords(self.LiveArrow2)
+            x0, y0, x1, y1 = self.canvas.coords(self.LiveArrow2)
             self.canvas.coords(self.LiveArrow2, x0, y0, x, y)
         self.update_smooth()
         self.update_info()
         self.window.update_idletasks()
 
     def attach_cursor(self, reason=''):
-        #print 'attaching:', reason
+        # print 'attaching:', reason
         self.cursor_attached = True
         self.ActiveVertex.set_delta(8)
 
     def detach_cursor(self, reason=''):
-        #print 'detaching:', reason
+        # print 'detaching:', reason
         self.cursor_attached = False
         self.ActiveVertex.set_delta(2)
 
     def _smooth_shift(self, key):
-            # We can't keep up with a fast repeat.
+        # We can't keep up with a fast repeat.
         try:
             ddx, ddy = vertex_shifts[key]
         except KeyError:
@@ -1126,8 +1137,8 @@ class LinkEditor(PLinkBase):
         else:
             self.cursorx = x = self.ActiveVertex.x + dx
             self.cursory = y = self.ActiveVertex.y + dy
-            self.move_active(x,y)
-            self.shift_delta = (0,0)
+            self.move_active(x, y)
+            self.shift_delta = (0, 0)
             self.shift_stamp = now
 
     def clicked_on_arrow(self, vertex):
@@ -1159,11 +1170,11 @@ class LinkEditor(PLinkBase):
         self.update_info()
         self.canvas.config(cursor='')
 
-    def goto_drawing_state(self, x1,y1):
+    def goto_drawing_state(self, x1, y1):
         self.ActiveVertex.expose()
         self.ActiveVertex.draw()
         x0, y0 = self.ActiveVertex.point()
-        self.LiveArrow1 = self.canvas.create_line(x0,y0,x1,y1,fill='red')
+        self.LiveArrow1 = self.canvas.create_line(x0, y0, x1, y1, fill='red')
         self.state = 'drawing_state'
         self.canvas.config(cursor='pencil')
         self.hide_DT()
@@ -1177,7 +1188,7 @@ class LinkEditor(PLinkBase):
         self.update_crossings(active.out_arrow)
         self.update_crosspoints()
         return (self.generic_arrow(active.in_arrow) and
-                self.generic_arrow(active.out_arrow) )
+                self.generic_arrow(active.out_arrow))
 
     def end_dragging_state(self):
         if not self.verify_drag():
@@ -1213,7 +1224,7 @@ class LinkEditor(PLinkBase):
             return False
         for arrow in self.Arrows:
             if arrow.too_close(vertex, tolerance=Arrow.epsilon + 2):
-                #print 'non-generic vertex'
+                # print 'non-generic vertex'
                 return False
         return True
 
@@ -1226,10 +1237,10 @@ class LinkEditor(PLinkBase):
                 if locked:
                     x, y, delta = vertex.x, vertex.y, 6
                     self.canvas.delete('lock_error')
-                    self.canvas.create_oval(x-delta , y-delta, x+delta, y+delta,
+                    self.canvas.create_oval(x - delta, y - delta, x + delta, y + delta,
                                             outline='gray', fill=None, width=3,
                                             tags='lock_error')
-                #print 'arrow too close to vertex %s'%vertex
+                # print 'arrow too close to vertex %s'%vertex
                 return False
         for crossing in self.Crossings:
             point = self.CrossPoints[self.Crossings.index(crossing)]
@@ -1237,10 +1248,10 @@ class LinkEditor(PLinkBase):
                 if locked:
                     x, y, delta = point.x, point.y, 6
                     self.canvas.delete('lock_error')
-                    self.canvas.create_oval(x-delta , y-delta, x+delta, y+delta,
+                    self.canvas.create_oval(x - delta, y - delta, x + delta, y + delta,
                                             outline='gray', fill=None, width=3,
                                             tags='lock_error')
-                #print 'arrow too close to crossing %s'%crossing
+                # print 'arrow too close to crossing %s'%crossing
                 return False
         return True
 
@@ -1260,7 +1271,7 @@ class LinkEditor(PLinkBase):
         if this_arrow == None:
             return
         cross_list = [c for c in self.Crossings if this_arrow in c]
-        damage_list =[]
+        damage_list = []
         find = lambda x: cross_list[cross_list.index(x)]
         for arrow in self.Arrows:
             if this_arrow == arrow:
@@ -1269,14 +1280,14 @@ class LinkEditor(PLinkBase):
             new_crossing.locate()
             if new_crossing.x != None:
                 if new_crossing in cross_list:
-                    #print 'keeping %s'%new_crossing
+                    # print 'keeping %s'%new_crossing
                     find(new_crossing).locate()
                     continue
                 else:
-                    #print 'adding %s'%new_crossing
+                    # print 'adding %s'%new_crossing
                     self.Crossings.append(new_crossing)
             else:
-                #print 'removing %s'%new_crossing
+                # print 'removing %s'%new_crossing
                 if new_crossing in self.Crossings:
                     if arrow == find(new_crossing).under:
                         damage_list.append(arrow)
