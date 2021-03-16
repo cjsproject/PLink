@@ -19,17 +19,17 @@ editing tool for link diagrams.
 """
 import os, time, webbrowser
 
-from .gui import *
-from . import smooth
-from .vertex import Vertex
-from .arrow import Arrow
-from .crossings import Crossing, ECrossing
-from .colors import Palette
-from .dialog import InfoDialog
-from .manager import LinkManager
-from .viewer import LinkViewer
-from .version import version
-from .ipython_tools import IPythonTkRoot
+from gui import *
+import smooth
+from vertex import Vertex
+from arrow import Arrow
+from crossings import Crossing, ECrossing
+from colors import Palette
+from dialog import InfoDialog
+from manager import LinkManager
+from viewer import LinkViewer
+from version import version
+from ipython_tools import IPythonTkRoot
 
 About = """This is version %s of PLink.
 
@@ -629,7 +629,7 @@ class LinkEditor(PLinkBase):
 
     def _key_release(self, event):
         """
-        Handler for keyrelease events.
+        Handler for keyrelease events.1
         """
         if not self.state == 'start_state':
             return

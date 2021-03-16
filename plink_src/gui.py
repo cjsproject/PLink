@@ -23,9 +23,11 @@ try:
     import tkinter as Tk_
     import tkinter.filedialog as tkFileDialog
     import tkinter.messagebox as tkMessageBox
-    import tkinter.ttk as ttk
-    from . import canvasvg
+    from tkinter import ttk
+    import canvasvg
     from tkinter.simpledialog import Dialog as SimpleDialog
+#    import tkinter as tk
+#    from tkinter import filedialog, messagebox, simpledialog, ttk
 except ImportError:
     # Tk is unavailable or misconfigured.
     # This allows running tests when there is no tkinter module.

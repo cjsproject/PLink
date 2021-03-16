@@ -44,8 +44,10 @@ import sys
 
 try: 
     import tkinter as Tk_
-    from . import canvasvg
-except ImportError:  # Tk unavailable or misconfigured
+    import canvasvg
+except ImportError as e:  # Tk unavailable or misconfigured
+    print(e)
+    exit()
     Tk_, canvasvg = None, None
 
 try:

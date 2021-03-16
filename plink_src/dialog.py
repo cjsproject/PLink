@@ -17,7 +17,7 @@ This module exports the InfoDialog class, used for displaying information
 about the PLink program.
 """
 # Hack for when Tkinter is unavailable or broken
-from .gui import Tk_, ttk, SimpleDialog
+from gui import Tk_, ttk, SimpleDialog
 
 if SimpleDialog:
     baseclass = SimpleDialog

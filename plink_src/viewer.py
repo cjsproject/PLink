@@ -18,12 +18,12 @@ This module exports the class LinkViewer.  A LinkViewer object
 creates a Tk window for viewing (not editing) a PL or smooth
 link diagram.
 """
-from .gui import *
-from . import smooth
+from gui import *
+import smooth
 # -*- coding: utf-8 -*-
 
-from .colors import Palette
-from .manager import LinkManager
+from colors import Palette
+from manager import LinkManager
 
 class LinkViewer(LinkManager):
     """

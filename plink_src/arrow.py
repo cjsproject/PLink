@@ -17,7 +17,7 @@ This module exports the class Arrow which represents a (directed)
 line segment in a PL link diagram.
 """
 from math import sqrt
-from .gui import *
+from gui import *
 
 default_arrow_params = dict(abs_gap_size=9.0,
                             rel_gap_size=0.3,

@@ -37,7 +37,7 @@ class Crossing:
         self.is_virtual = is_virtual
         self.locate()
         self.label = label
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     def __repr__(self):
         self.locate()
         if not self.is_virtual:
