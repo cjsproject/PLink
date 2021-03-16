@@ -25,12 +25,13 @@ default_arrow_params = dict(abs_gap_size=9.0,
                             double_gap_at_ends=True,
                             include_overcrossings=False)
 
+
 class Arrow:
     """
     An arrow in a PL link diagram.
     """
     epsilon = 8
-    
+
     def __init__(self, start, end, canvas=None,
                  style='normal', color='black',
                  other_params=None):
@@ -49,21 +50,21 @@ class Arrow:
             self.start.out_arrow = self
             self.end.in_arrow = self
             self.vectorize()
-        
+
     def __repr__(self):
-        return '%s-->%s'%(self.start, self.end)
+        return '%s-->%s' % (self.start, self.end)
 
     def __xor__(self, other):
         """
         Returns the barycentric coordinate at which self crosses other.
         """
-        D = other.dx*self.dy - self.dx*other.dy
+        D = other.dx * self.dy - self.dx * other.dy
         if D == 0:
             return None
         xx = other.start.x - self.start.x
         yy = other.start.y - self.start.y
-        s = (yy*self.dx - xx*self.dy)/D
-        t = (yy*other.dx - xx*other.dy)/D
+        s = (yy * self.dx - xx * self.dy) / D
+        t = (yy * other.dx - xx * other.dy) / D
         if 0 < s < 1 and 0 < t < 1:
             return t
         else:
@@ -72,7 +73,7 @@ class Arrow:
     def vectorize(self):
         self.dx = float(self.end.x - self.start.x)
         self.dy = float(self.end.y - self.start.y)
-        self.length = sqrt(self.dx*self.dx + self.dy*self.dy) 
+        self.length = sqrt(self.dx * self.dx + self.dy * self.dy)
 
     def reverse(self, crossings=[]):
         self.end, self.start = self.start, self.end
@@ -120,7 +121,7 @@ class Arrow:
         params = self.params
         segments = []
         self.vectorize()
-        cross_params = [(0.0,False), (1.0,False)]
+        cross_params = [(0.0, False), (1.0, False)]
         for c in crossings:
             if c.under == self:
                 t = self ^ c.over
@@ -131,33 +132,33 @@ class Arrow:
                 if t:
                     cross_params.append((t, False))
         cross_params.sort()
-        
+
         def r(t):
             "Affine parameterization of the arrow with domain [0,1]."
             if t == 1.0:
                 return list(self.end.point())
             x, y = self.start.point()
-            return [x + t*self.dx, y + t*self.dy]
+            return [x + t * self.dx, y + t * self.dy]
 
         segments = []
-        for i in range(len(cross_params)-1):
+        for i in range(len(cross_params) - 1):
             a, has_gap_a = cross_params[i]
-            b, has_gap_b = cross_params[i+1]
+            b, has_gap_b = cross_params[i + 1]
             # Length of this segment, in internal coordinates
             dt = b - a
             # A suitable gap for r restricted to a subinterval of len dt.
-            abs_gap = params['abs_gap_size']/self.length if self.length != 0 else 0
-            rel_gap = params['rel_gap_size']*dt
+            abs_gap = params['abs_gap_size'] / self.length if self.length != 0 else 0
+            rel_gap = params['rel_gap_size'] * dt
             if params['double_gap_at_ends']:
                 # When the segment includes one of the ends of the
                 # arrow, we will need a gap at at most one end.  Hence
                 # it makes sense to double the allowed relative gap.
-                if i==0 or i==len(cross_params)-2:
-                    rel_gap = 2*rel_gap
+                if i == 0 or i == len(cross_params) - 2:
+                    rel_gap = 2 * rel_gap
             gap = min(abs_gap, rel_gap)
             gap_a = gap if has_gap_a else 0
             gap_b = gap if has_gap_b else 0
-            segments.append( (a + gap_a, b - gap_b) )
+            segments.append((a + gap_a, b - gap_b))
         return [r(a) + r(b) for a, b in segments]
 
     def draw(self, crossings=[], recurse=True, skip_frozen=True):
@@ -179,16 +180,16 @@ class Arrow:
             self.canvas.delete(dot)
         for x0, y0, x1, y1 in segments[:-1]:
             self.lines.append(self.canvas.create_line(
-                    x0, y0, x1, y1,
-                    width=thickness, fill=color, tags='transformable'))
+                x0, y0, x1, y1,
+                width=thickness, fill=color, tags='transformable'))
         x0, y0, x1, y1 = segments[-1]
-        last_seg_len = sqrt((x1 - x0)**2 + (y1 - y0)**2)
+        last_seg_len = sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
         no_arrow_size = self.params['no_arrow_size']
         arrow = Tk_.LAST if last_seg_len >= no_arrow_size else None
         self.lines.append(self.canvas.create_line(
-                x0, y0, x1, y1,
-                arrow=arrow,
-                width=thickness, fill=color, tags='transformable'))
+            x0, y0, x1, y1,
+            arrow=arrow,
+            width=thickness, fill=color, tags='transformable'))
         if recurse:
             under_arrows = [c.under for c in crossings if c.over == self]
             for arrow in under_arrows:
@@ -196,11 +197,11 @@ class Arrow:
         for c in crossings:
             if self == c.under and c.is_virtual:
                 self.dots.append(self.canvas.create_oval(
-                        c.x-5, c.y-5, c.x+5, c.y+5,
-                        fill='black', outline='black',
-                        tags=('dot', 'transformable')))
+                    c.x - 5, c.y - 5, c.x + 5, c.y + 5,
+                    fill='black', outline='black',
+                    tags=('dot', 'transformable')))
         self.canvas.tag_raise('dot', Tk_.ALL)
-    
+
     def set_start(self, vertex, crossings=[]):
         self.start = vertex
         if self.end:
@@ -217,7 +218,7 @@ class Arrow:
         self.color = color
         for line in self.lines:
             self.canvas.itemconfig(line, fill=color)
-            
+
     def erase(self):
         """
         Prepare the arrow for the garbage collector.
@@ -232,7 +233,6 @@ class Arrow:
         e = tolerance if tolerance else Arrow.epsilon
         Dx = vertex.x - self.start.x
         Dy = vertex.y - self.start.y
-        A = (Dx*self.dx + Dy*self.dy)/self.length
-        B = (Dy*self.dx - Dx*self.dy)/self.length
+        A = (Dx * self.dx + Dy * self.dy) / self.length
+        B = (Dy * self.dx - Dx * self.dy) / self.length
         return (-e < A < self.length + e and -e < B < e)
-
