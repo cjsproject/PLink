@@ -197,8 +197,8 @@ class Arrow:
         for c in crossings:
             if self == c.under and c.is_virtual:
                 self.dots.append(self.canvas.create_oval(
-                    c.x - 5, c.y - 5, c.x + 5, c.y + 5,
-                    fill='black', outline='black',
+                    c.x - 10, c.y - 10, c.x + 10, c.y + 10,
+                    outline='black', width=2,
                     tags=('dot', 'transformable')))
         self.canvas.tag_raise('dot', Tk_.ALL)
 
