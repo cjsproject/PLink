@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ded962e7-4586-4dbb-aeba-c74324dfb8e3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/plink_src/arrow.py" beforeDir="false" afterPath="$PROJECT_DIR$/plink_src/arrow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plink_src/crossings.py" beforeDir="false" afterPath="$PROJECT_DIR$/plink_src/crossings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plink_src/editor.py" beforeDir="false" afterPath="$PROJECT_DIR$/plink_src/editor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plink_src/manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/plink_src/manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plink_src/smooth.py" beforeDir="false" afterPath="$PROJECT_DIR$/plink_src/smooth.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Virtual_DT_Code.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plink_src/tref_one_v_cross.lnk" beforeDir="false" afterPath="$PROJECT_DIR$/tref_one_v_cross.lnk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plink_src/tref_one_virt.eps" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
