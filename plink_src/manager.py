@@ -243,6 +243,7 @@ class LinkManager:
         for crossing in self.Crossings:
             crossing.clear_marks()
         # Mark which components each crossing belongs to.
+        # if virtual, then do not mark it. keep marks cleared.
         for component in components:
             for ecrossing in component:
                 ecrossing.crossing.mark_component(component)
@@ -263,6 +264,7 @@ class LinkManager:
             # Count the crossings on this component and remember any
             # odd-numbered crossings which are shared with an
             # unfinished component.
+            # if virtual, crossing count remains unchanged
             touching = []
             for ec in this_component:
                 crossing = ec.crossing
@@ -400,6 +402,8 @@ class LinkManager:
         even_codes = [None] * len(self.Crossings)
         flips = [None] * len(self.Crossings)
         for crossing in self.Crossings:
+            if crossing.is_virtual:
+                continue
             if crossing.hit1 % 2 != 0:
                 n = (crossing.hit1 - 1) // 2
                 even_codes[n] = crossing.hit2

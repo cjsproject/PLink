@@ -474,6 +474,8 @@ class PLinkBase(LinkViewer):
         asterisk.
         """
         for crossing in self.Crossings:
+            if crossing.is_virtual:
+                continue
             crossing.locate()
             yshift = 0
             for arrow in crossing.over, crossing.under:

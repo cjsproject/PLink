@@ -172,7 +172,7 @@ class Arrow:
             thickness = 1
         else:
             color = self.color
-            thickness = 3
+            thickness = 5
         segments = self.find_segments(crossings)
         for line in self.lines:
             self.canvas.delete(line)

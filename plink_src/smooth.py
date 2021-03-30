@@ -241,6 +241,7 @@ class Smoother:
                     curves.append(A)
             self.polygons.append(polygon)
 
+
     def set_polylines(self, polylines, thickness=5,
                       tension1=1.0, tension2=1.0):
         self.clear()

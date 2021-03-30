@@ -106,6 +106,8 @@ class Crossing:
         two components of the diagram.  As a side effect, set the
         flipped attribute on the first hit.
         """
+        if ecrossing.crossing.is_virtual:
+            return False
         over = ecrossing.goes_over()
         if count % 2 == 0 and over:
             count = -count
