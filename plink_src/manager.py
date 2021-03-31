@@ -246,9 +246,11 @@ class LinkManager:
         # if virtual, then do not mark it. keep marks cleared.
         for component in components:
             for ecrossing in component:
+                if ecrossing.crossing.is_virtual:
+                    continue
                 ecrossing.crossing.mark_component(component)
         sorted_components = []
-        count = 1
+        count = 0
         while len(components) > 0:
             this_component = components.pop()
             sorted_components.append(this_component)
@@ -268,12 +270,14 @@ class LinkManager:
             touching = []
             for ec in this_component:
                 crossing = ec.crossing
+                count += 1
+                if crossing.is_virtual:
+                    continue
                 if crossing.DT_hit(count, ec):
                     if crossing.comp2 in components:
                         touching.append((crossing, crossing.comp2))
                     elif crossing.comp1 in components:
                         touching.append((crossing, crossing.comp1))
-                count += 1
             # Choose the next component, by Morwen's rule: Use the
             # component containing the partner of the first
             # odd-numbered crossing that is shared with another
@@ -418,11 +422,11 @@ class LinkManager:
         if not alpha:
             dt = []
             for chunk in DT_chunks:
-                dt.append(tuple(even_codes[:chunk]))
+                dt.append(tuple(i for i in even_codes[:chunk] if i is not None))
                 even_codes = even_codes[chunk:]
             result = [dt]
             if signed:
-                result.append(flips)
+                result.append([i for i in flips if i is not None])
         else:
             prefix_ints = [len(self.Crossings), len(sorted_components)]
             prefix_ints += DT_chunks

@@ -433,6 +433,8 @@ class PLinkBase(LinkViewer):
             return
         if self.show_DT_var.get():
             dt = self.DT_code()
+            for i in dt:
+                print(i)
             if dt is not None:
                 self.show_DT()
         if self.show_labels_var.get():
@@ -454,6 +456,8 @@ class PLinkBase(LinkViewer):
         Display the assigned labels next to each crossing.
         """
         for crossing in self.Crossings:
+            if crossing.is_virtual:
+                continue
             crossing.locate()
             yshift = 0
             for arrow in crossing.over, crossing.under:
