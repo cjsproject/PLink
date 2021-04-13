@@ -308,9 +308,12 @@ class PLinkBase(LinkViewer):
             self.colors.append(color)
             component[0].start.color = color
             for arrow in component:
-                arrow.color = color
-                arrow.end.color = color
-                arrow.draw(self.Crossings)
+                if component.index(arrow) == 0:
+                    arrow.color = 'black'
+                else:
+                    arrow.color = color
+                    arrow.end.color = color
+                    arrow.draw(self.Crossings)
             if self.style_var.get() != 'smooth':
                 self.color_keys.append(
                     self.canvas.create_text(x, y,

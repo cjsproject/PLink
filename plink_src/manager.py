@@ -177,7 +177,7 @@ class LinkManager:
             crossing_locations = set([(c.x, c.y) for c in self.Crossings])
 
         for component in self.arrow_components():
-            color = component[0].color
+            color = component[1].color
             polylines = []
             polyline = []
             for arrow in component:
