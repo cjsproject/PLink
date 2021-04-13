@@ -433,8 +433,6 @@ class PLinkBase(LinkViewer):
             return
         if self.show_DT_var.get():
             dt = self.DT_code()
-            for i in dt:
-                print(i)
             if dt is not None:
                 self.show_DT()
         if self.show_labels_var.get():
@@ -573,7 +571,7 @@ class LinkDisplay(PLinkBase):
 
     def __init__(self, *args, **kwargs):
         if 'title' not in kwargs:
-            kwargs['title'] = 'PLink Viewer'
+            kwargs['title'] = 'vPLink Viewer'
         PLinkBase.__init__(self, *args, **kwargs)
         self.style_var.set('smooth')
 
@@ -586,7 +584,7 @@ class LinkEditor(PLinkBase):
 
     def __init__(self, *args, **kwargs):
         if 'title' not in kwargs:
-            kwargs['title'] = 'PLink Editor'
+            kwargs['title'] = 'vPLink Editor'
         self.callback = kwargs.pop('callback', None)
         self.cb_menu = kwargs.pop('cb_menu', '')
         self.no_arcs = kwargs.pop('no_arcs', False)
@@ -821,6 +819,7 @@ class LinkEditor(PLinkBase):
             crossing.under.draw(self.Crossings)
             crossing.over.draw(self.Crossings)
             self.update_smooth()
+        self.update_info()
 
     def single_click(self, event):
         """
