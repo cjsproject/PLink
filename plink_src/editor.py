@@ -306,14 +306,14 @@ class PLinkBase(LinkViewer):
         for component in components:
             color = self.palette.new()
             self.colors.append(color)
-            component[0].start.color = color
+            if component[0].start.color == 'black':
+                pass
+            else:
+                component[0].start.color = color
             for arrow in component:
-                if component.index(arrow) == 0:
-                    arrow.color = 'black'
-                else:
-                    arrow.color = color
-                    arrow.end.color = color
-                    arrow.draw(self.Crossings)
+                arrow.color = color
+                arrow.end.color = color
+                arrow.draw(self.Crossings)
             if self.style_var.get() != 'smooth':
                 self.color_keys.append(
                     self.canvas.create_text(x, y,
@@ -325,6 +325,7 @@ class PLinkBase(LinkViewer):
         for vertex in self.Vertices:
             vertex.draw()
         self.update_smooth()
+        self.color_first_over()
 
     def unpickle(self, vertices, arrows, crossings, hot=None):
         LinkManager.unpickle(self, vertices, arrows, crossings, hot)
@@ -458,6 +459,7 @@ class PLinkBase(LinkViewer):
         """
         for crossing in self.Crossings:
             if crossing.is_virtual:
+                print("Virtual Labels", crossing.label)
                 continue
             crossing.locate()
             yshift = 0
@@ -480,6 +482,7 @@ class PLinkBase(LinkViewer):
         """
         for crossing in self.Crossings:
             if crossing.is_virtual:
+                print("Virtual Hits", crossing.hit1, crossing.hit2)
                 continue
             crossing.locate()
             yshift = 0

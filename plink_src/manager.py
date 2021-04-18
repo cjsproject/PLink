@@ -246,19 +246,22 @@ class LinkManager:
         # if virtual, then do not mark it. keep marks cleared.
         for component in components:
             for ecrossing in component:
-                if ecrossing.crossing.is_virtual:
-                    continue
+#                if ecrossing.crossing.is_virtual:
+#                    print(component[component.index(ecrossing)])
+#                    del component[component.index(ecrossing)]
+#                    continue
                 ecrossing.crossing.mark_component(component)
         sorted_components = []
         count = 0
+
         while len(components) > 0:
             this_component = components.pop()
             sorted_components.append(this_component)
             # Choose the first crossing on this component by Morwen's
             # rule: If any crossings on this component have been hit,
             # find the first one with an odd label and then start at
-            # its predecessor.
-            odd_hits = [ec for ec in this_component if ec.crossing.hit1 % 2 == 1]
+            # its predecessor. ignore the virtual crossings
+            odd_hits = [ec for ec in this_component if ec.crossing.hit1 % 2 == 1] #and not ec.crossing.is_virtual
             if len(odd_hits) > 0:
                 odd_hits.sort(key=lambda x: x.crossing.hit1)
                 n = this_component.index(odd_hits[0])
@@ -271,8 +274,8 @@ class LinkManager:
             for ec in this_component:
                 crossing = ec.crossing
                 count += 1
-                if crossing.is_virtual:
-                    continue
+#                if crossing.is_virtual:
+#                    continue
                 if crossing.DT_hit(count, ec):
                     if crossing.comp2 in components:
                         touching.append((crossing, crossing.comp2))
@@ -382,6 +385,23 @@ class LinkManager:
                 PD.append((under[0], over[0], under[1], over[1]))
         return PD
 
+    def new_DT(self):
+        current = 0
+        code = ''
+        sorted_comps = self.sorted_components()
+        ecrossing_components = self.crossing_components()
+        if ecrossing_components:
+            for ecrossings in ecrossing_components:
+                for ecrossing in ecrossings:
+                    if not ecrossing.crossing.is_virtual:
+                        pass
+#        for crossing in self.crossings:
+#            if crossing.is_virtual:
+#                crossing.hit1 = crossing.hit2 = None
+#            else:
+#                current += 1
+#                code += str(current)
+
     def DT_code(self, alpha=False, signed=True, return_sizes=False):
         """
         Return the Dowker-Thistlethwaite code as a list of tuples of
@@ -394,6 +414,7 @@ class LinkManager:
         If return_sizes is set to True, a list of the number of crossings
         in each component is returned (this is for use by Gauss_code).
         """
+        self.new_DT()
         sorted_components = self.sorted_components()
         if sorted_components is None or len(sorted_components) == 0:
             return (None, None) if return_sizes else None
@@ -406,8 +427,8 @@ class LinkManager:
         even_codes = [None] * len(self.Crossings)
         flips = [None] * len(self.Crossings)
         for crossing in self.Crossings:
-            if crossing.is_virtual:
-                continue
+#            if crossing.is_virtual:
+#                continue
             if crossing.hit1 % 2 != 0:
                 n = (crossing.hit1 - 1) // 2
                 even_codes[n] = crossing.hit2
@@ -418,7 +439,7 @@ class LinkManager:
                 else:
                     n = (crossing.hit2 - 1) // 2
                 even_codes[n] = crossing.hit1
-            flips[n] = int(crossing.flipped)
+            flips[n] = int(crossing.flipped) if crossing.flipped is not None else None
         if not alpha:
             dt = []
             for chunk in DT_chunks:
@@ -683,3 +704,10 @@ class LinkManager:
             for arrow in component:
                 arrow.set_color(color)
                 arrow.end.set_color(color)
+
+    def color_first_over(self):
+        ecrossing_components = self.crossing_components()
+        if ecrossing_components:
+            for ecrossing in ecrossing_components:
+                if not ecrossing[0].crossing.is_virtual:
+                    ecrossing[0].crossing.over.color = 'black'
