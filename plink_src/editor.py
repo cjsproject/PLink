@@ -174,6 +174,8 @@ class PLinkBase(LinkViewer):
         info_menu = Tk_.Menu(self.menubar, tearoff=0)
         info_menu.add_radiobutton(label='DT code', var=self.info_var,
                                   command=self.set_info, value=1)
+        info_menu.add_radiobutton(label='Alternative DT', var=self.info_var,
+                                  command=self.set_info, value=6)
         info_menu.add_radiobutton(label='Alphabetical DT', var=self.info_var,
                                   command=self.set_info, value=2)
         info_menu.add_radiobutton(label='Gauss code', var=self.info_var,
@@ -433,15 +435,19 @@ class PLinkBase(LinkViewer):
         self.hide_DT()
         self.hide_labels()
         self.clear_text()
+        info_value = self.info_var.get()
         if not self._check_update():
             return
         if self.show_DT_var.get():
             dt = self.DT_code()
+            if info_value == 6:
+                dt = self.new_DT()
+            elif info_value == 1:
+                pass
             if dt is not None:
                 self.show_DT()
         if self.show_labels_var.get():
             self.show_labels()
-        info_value = self.info_var.get()
         if info_value == 1:
             self.DT_normal()
         elif info_value == 2:
@@ -452,6 +458,8 @@ class PLinkBase(LinkViewer):
             self.PD_info()
         elif info_value == 5:
             self.BB_info()
+        elif info_value == 6:
+            self.DT_alt()
 
     def show_labels(self):
         """
@@ -753,8 +761,15 @@ class LinkEditor(PLinkBase):
                 'Please close up all components first.')
             return
         need_flipping = set()
+
+        # properly updates original convention
         for component in self.DT_code()[0]:
             need_flipping.update(c for c in component if c < 0)
+
+        # may be some implementation here for new convention
+#        for component in self.DT_code():
+#            need_flipping.update(c for c in component if c < 0)
+
         for crossing in self.Crossings:
             if crossing.hit2 in need_flipping or crossing.hit1 in need_flipping:
                 crossing.reverse()

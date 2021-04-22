@@ -386,24 +386,20 @@ class LinkManager:
         return PD
 
     def new_DT(self):
-        current = 0
-        code = ''
-        sorted_comps = self.sorted_components()
         ecrossing_components = self.crossing_components()
-        num_ec = len(ecrossing_components)
-        dt_arrows = []
         if ecrossing_components:
-            for ecrossings in ecrossing_components:
-                for ecrossing in ecrossings:
-                    if not ecrossing.crossing.is_virtual:
-                        current += 1
-                        goes_over = 1 if ecrossing.goes_over() else -1
-                        code += str(goes_over * current)
-
+            test_dt = [[] for i in range(len(ecrossing_components))]
             new_dt = []
+            # curr is used instead of enums because
+            # it can count the total crossings of
+            # all ecrossing components (which are numbered
+            # in order... we keep track of the labels by the value curr)
             curr = 0
             visited_crossings = []
-            for crossing in self.Crossings:
+            # go through every crossing, find which labels are under/over,
+            # then append as a tuple to our dt convention.
+            # crossings are denoted (under, over)
+            for i, crossing in enumerate(self.Crossings):
                 print('total crossings:', len(self.Crossings))
                 visited_crossings.append(crossing)
                 num_virtual = 0
@@ -411,33 +407,36 @@ class LinkManager:
                 under = None
                 for num_links, ecrossings in enumerate(ecrossing_components):
                     print("ecrossings,", len(ecrossings), 'components', len(ecrossing_components))
-                    for i, ecrossing in enumerate(ecrossings):
+                    for ecrossing in ecrossings:
+                        curr += 1
+                        # check if the current crossing is virtual and count it if true
+                        # it will count this value more than once, but it is reset at each outer loop
                         if ecrossing.crossing.is_virtual:
                             num_virtual += 1
+                        # otherwise, check if over and under are found
+                        # if they arent, check if this crossing is the most
+                        # recently visited crossing
                         else:
                             if over is not None and under is not None:
                                 break
                             if ecrossing.crossing == visited_crossings[-1]:
                                 if ecrossing.goes_over():
-                                    over = (num_links + 1)*(i+1) - num_virtual
+                                    over = curr - num_virtual
                                 else:
-                                    under = (num_links + 1)*(i+1) - num_virtual
+                                    under = curr - num_virtual
+                # once over and under are found
+                # (which is guaranteed, we iterate through every single crossing)
+                # append it to our new dt convention
                 new_dt.append((over, under))
+                crossing.hit1 = new_dt[i][0]
+                crossing.hit2 = new_dt[i][1]
+                # reset current so that we don't double-count crossings
+                curr = 0
 
-        print(code, new_dt, sep='\n\n')
-
-        for i, crossing in enumerate(self.Crossings):
-            crossing.hit1 = new_dt[i][0]
-            crossing.hit2 = new_dt[i][1]
+        print(new_dt, test_dt, sep='\n\n')
 
         new_dt = [i for i in new_dt if i != (None, None)]
         return new_dt
-
-    #        print(current, code, sep='\t')
-
-    #    current += 1
-    #    goes_over = 'O' if ecrossing.goes_over() else 'U'
-    #    code += goes_over + str(current)
 
     def DT_code(self, alpha=False, signed=True, return_sizes=False):
         """
@@ -450,8 +449,6 @@ class LinkManager:
 
         If return_sizes is set to True, a list of the number of crossings
         in each component is returned (this is for use by Gauss_code).
-        """
-        return self.new_DT()
         """
         sorted_components = self.sorted_components()
         if sorted_components is None or len(sorted_components) == 0:
@@ -501,9 +498,8 @@ class LinkManager:
             result = [prefix + alphacode]
         if return_sizes:
             result.append(component_sizes)
-        print(tuple(result))
         return tuple(result)
-"""
+
     def Gauss_code(self):
         """
         Return a Gauss code for the link.  The Gauss code is computed
@@ -570,9 +566,16 @@ class LinkManager:
         """
         code = self.DT_code()
         if code:
-            self.write_text(('DT: %s' % code).replace(', ', ','))
+            self.write_text(('DT: %s,  %s' % code).replace(', ', ','))
 
-#            self.write_text(('DT: %s,  %s' % code).replace(', ', ','))
+    def DT_alt(self):
+        """
+            Displays a Dowker-Thistlethwaite code as a list of tuples
+            as (over-label, under-label) for each crossing
+        """
+        code = self.new_DT()
+        if code:
+            self.write_text(('DT: %s' % code).replace(', ', ','))
 
     def DT_alpha(self):
         """
