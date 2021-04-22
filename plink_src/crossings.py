@@ -155,3 +155,9 @@ class ECrossing:
     def goes_over(self):
         return (self.arrow == self.crossing.over)
 
+    def goes_under(self):
+        return (self.arrow == self.crossing.under)
+
+    def arr_goes_over(self, arrow):
+        return (arrow == self.crossing.over)
+

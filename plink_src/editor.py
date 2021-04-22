@@ -458,6 +458,7 @@ class PLinkBase(LinkViewer):
         Display the assigned labels next to each crossing.
         """
         for crossing in self.Crossings:
+            print("label in show_labels:", crossing.label)
             if crossing.is_virtual:
                 print("Virtual Labels", crossing.label)
                 continue
