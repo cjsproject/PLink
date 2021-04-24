@@ -749,9 +749,17 @@ class LinkManager:
                 arrow.set_color(color)
                 arrow.end.set_color(color)
 
-    def color_first_over(self):
-        ecrossing_components = self.crossing_components()
-        if ecrossing_components:
-            for ecrossing in ecrossing_components:
-                if not ecrossing[0].crossing.is_virtual:
-                    ecrossing[0].crossing.over.color = 'black'
+    def color_first(self):
+        crossing_comps = self.crossing_components()
+        for ecrossings in crossing_comps:
+            for i, ecrossing in enumerate(ecrossings):
+                if ecrossing.crossing.is_virtual:
+                    continue
+                if ecrossing.crossing.hit1 == 1:
+                    self.full_redraw()
+                    ecrossing.crossing.over.set_color('black')
+                    return
+                elif ecrossing.crossing.hit2 == 1:
+                    self.full_redraw()
+                    ecrossing.crossing.under.set_color('black')
+                    return

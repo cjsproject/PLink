@@ -104,6 +104,8 @@ class PLinkBase(LinkViewer):
         self.canvas.pack(padx=0, pady=0, fill=Tk_.BOTH, expand=Tk_.YES)
         self.infotext.pack(padx=5, pady=0, fill=Tk_.X, expand=Tk_.YES)
         self.show_DT_var = Tk_.IntVar(self.window)
+        # sets DT display on startup by default
+        self.show_DT_var.set(1)
         self.show_labels_var = Tk_.IntVar(self.window)
         self.info_var = Tk_.IntVar(self.window)
         self.style_var = Tk_.StringVar(self.window)
@@ -308,10 +310,7 @@ class PLinkBase(LinkViewer):
         for component in components:
             color = self.palette.new()
             self.colors.append(color)
-            if component[0].start.color == 'black':
-                pass
-            else:
-                component[0].start.color = color
+            component[0].start.color = color
             for arrow in component:
                 arrow.color = color
                 arrow.end.color = color
@@ -327,7 +326,6 @@ class PLinkBase(LinkViewer):
         for vertex in self.Vertices:
             vertex.draw()
         self.update_smooth()
-        self.color_first_over()
 
     def unpickle(self, vertices, arrows, crossings, hot=None):
         LinkManager.unpickle(self, vertices, arrows, crossings, hot)
@@ -498,7 +496,7 @@ class PLinkBase(LinkViewer):
             for arrow in crossing.over, crossing.under:
                 arrow.vectorize()
                 if abs(arrow.dy) < .3 * abs(arrow.dx):
-                    yshift = 8
+                    yshift = 6
             flip = ' *' if crossing.flipped else ''
             self.DTlabels.append(self.canvas.create_text(
                 (crossing.x - 10, crossing.y - yshift),
