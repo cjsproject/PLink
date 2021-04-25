@@ -433,9 +433,10 @@ class LinkManager:
                 # reset current so that we don't double-count crossings
                 curr = 0
 
-        print(new_dt, test_dt, sep='\n\n')
+        print(test_dt, sep='\n\n')
 
         new_dt = [i for i in new_dt if i != (None, None)]
+        print(new_dt)
         return new_dt
 
     def DT_code(self, alpha=False, signed=True, return_sizes=False):
@@ -500,12 +501,33 @@ class LinkManager:
             result.append(component_sizes)
         return tuple(result)
 
+    def new_Gauss(self):
+        dt = self.new_DT()
+        gauss = []
+        # seems to work, also has proper signs :)
+        # iterates from 1 to twice the num of crossings
+        # finds chronological order of crossings, takes the min
+        # but keeps the sign of the current i value ie.
+        # DT (2, 5) if i == 5 will give gauss of -2
+        for i in range(1, (len(dt) * 2) + 1):
+            for crossing in dt:
+                if i in crossing:
+                    temp = min(crossing)
+                    if i == crossing[1]:
+                        temp *= -1
+                    gauss.append(temp)
+
+        return gauss
+
     def Gauss_code(self):
         """
         Return a Gauss code for the link.  The Gauss code is computed
         from a DT code, so the Gauss code will use the same indexing
         of crossings as is used for the DT code.  Requires that all
         components be closed.
+        """
+        print('new gauss: ', self.new_Gauss())
+        return self.new_Gauss()
         """
         dt, sizes = self.DT_code(signed=False, return_sizes=True)
         if dt is None:
@@ -529,6 +551,7 @@ class LinkManager:
             gauss.append(tuple(counts[start:end]))
             start = end
         return gauss
+    """
 
     def BB_framing(self):
         """

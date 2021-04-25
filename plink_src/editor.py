@@ -438,7 +438,7 @@ class PLinkBase(LinkViewer):
             return
         if self.show_DT_var.get():
             dt = self.DT_code()
-            if info_value == 6:
+            if info_value == 6 or 3:
                 dt = self.new_DT()
             elif info_value == 1:
                 pass
